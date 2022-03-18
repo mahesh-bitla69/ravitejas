@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    stages {
+	stage('Installation') {
+	    steps {
+		    sh 'apt install git'	
+	} 
+        stage('AWS credentials verification') {
+            steps {
+                echo 'validating the credentials'
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'ac0de317-37c6-4d82-ab28-96065f708f24',]]) {
+                    sh 'echo $AWS_ACCESS_KEY_ID'
+                    sh 'echo $AWS_SECRET_ACCESS_KEY'
+                    sh 'export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID'
+                    sh 'export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY'
+                    sh 'export AWS_DEFAULT_REGION=ap-south-1b'
+                }
+            }
+        }
+        stage ('Deploy') {
+            steps {
+                  withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'ac0de317-37c6-4d82-ab28-96065f708f24',]]) {
+                        sh 'echo $AWS_ACCESS_KEY_ID'
+                        sh 'echo $AWS_SECRET_ACCESS_KEY'
+                        sh 'export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID'
+                        sh 'export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY'
+                        sh 'export AWS_DEFAULT_REGION=ap-south-1b'
+			sh 'mv merakey.pem $PEM_FILE_NAME'
+			sh 'chmod 400 $PEM_FILE_NAME'
+			sh 'ssh -i "$PEM_FILE_NAME" ubuntu@ec2-$SERVER_IP'
+                        sh 'git clone https://github.com/mahesh-bitla69/ravitejas.git'
+                  }
+            }
+        }
+    }
+}
